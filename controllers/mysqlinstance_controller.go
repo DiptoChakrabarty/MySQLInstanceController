@@ -20,11 +20,13 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	diptomysqlexamplev1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 // MySQLInstanceReconciler reconciles a MySQLInstance object
@@ -46,11 +48,21 @@ type MySQLInstanceReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
-func (r *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
+	// Fetch MySQLInstance resource
+	instance := &diptomysqlexamplev1alpha1.MySQLInstance{}
+	err := rtx.Get(context.TODO(), req.NamespacedName, instance)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 
-	// TODO(user): your logic here
-
+	// Check if StatefulSet exists
+	statefulset := &appsv1.StatefulSet{}
+	err = rtx.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Name,
+	}, statefulset)
 	return ctrl.Result{}, nil
 }
 
