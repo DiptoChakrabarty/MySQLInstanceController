@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"math/rand"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -75,6 +77,24 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 // Create StatefulSet method
 func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.MySQLInstance) error {
+	// Generate a random password for the MySQL root user
+	rand.Seed(time.Now().UnixNano())
+	password := generateRandomPassword()
+
+	// Create StatefulSet
+	statefulSet := &appsv1.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      instance.Name,
+			Namespace: instance.Namespace,
+		},
+		Spec: appsv1.StatefulSetSpec{
+			Replicas:    3,
+			ServiceName: instance.Name,
+		},
+	}
+
+	// Set password as an environment variable
+
 	return nil
 }
 
