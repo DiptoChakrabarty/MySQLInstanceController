@@ -1,0 +1,31 @@
+# permissions for end users to edit mysqlinstances.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: mysqlinstance-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: mysqlinstancecontroller
+    app.kubernetes.io/part-of: mysqlinstancecontroller
+    app.kubernetes.io/managed-by: kustomize
+  name: mysqlinstance-editor-role
+rules:
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances/status
+  verbs:
+  - get

@@ -1,0 +1,4 @@
+## Append samples you want in your CSV to this file as resources ##
+resources:
+- dipto.mysql.example_v1alpha1_mysqlinstance.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

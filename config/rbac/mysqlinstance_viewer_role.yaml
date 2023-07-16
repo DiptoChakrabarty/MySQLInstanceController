@@ -1,0 +1,27 @@
+# permissions for end users to view mysqlinstances.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: mysqlinstance-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: mysqlinstancecontroller
+    app.kubernetes.io/part-of: mysqlinstancecontroller
+    app.kubernetes.io/managed-by: kustomize
+  name: mysqlinstance-viewer-role
+rules:
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances/status
+  verbs:
+  - get
