@@ -10,4 +10,14 @@ plugins:
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: mysqlinstancecontroller
 repo: github.com/DiptoChakrabarty/MySQLInstanceController.git
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: dipto.mysql.example
+  group: dipto.mysql.example
+  kind: MySQLInstance
+  path: github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1
+  version: v1alpha1
 version: "3"
