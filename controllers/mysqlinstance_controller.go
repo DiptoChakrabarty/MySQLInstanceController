@@ -25,7 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	diptomysqlexamplev1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
+	mysqlv1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
@@ -51,7 +51,7 @@ type MySQLInstanceReconciler struct {
 func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 	// Fetch MySQLInstance resource
-	instance := &diptomysqlexamplev1alpha1.MySQLInstance{}
+	instance := &mysqlv1alpha1.MySQLInstance{}
 	err := rtx.Get(context.TODO(), req.NamespacedName, instance)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -63,12 +63,24 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		Namespace: req.Namespace,
 		Name:      instance.Name,
 	}, statefulset)
+
+	if err != nil {
+		err = rtx.CreateStatefulSet(instance)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 	return ctrl.Result{}, nil
+}
+
+// Create StatefulSet method
+func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.MySQLInstance) error {
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MySQLInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&diptomysqlexamplev1alpha1.MySQLInstance{}).
+		For(&mysqlv1alpha1.MySQLInstance{}).
 		Complete(r)
 }
