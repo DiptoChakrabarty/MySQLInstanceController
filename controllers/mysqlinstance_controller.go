@@ -89,7 +89,7 @@ func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.My
 	secret := NewMySQLSecret(secretName, nameSpace, rootPwd, clusteradminPwd)
 
 	// Create the Secret
-	err = rtx.Create(context.TODO(), secret)
+	err := rtx.Create(context.TODO(), secret)
 	if err != nil {
 		// Handle error
 		return err
@@ -97,7 +97,10 @@ func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.My
 
 	// Create StatefulSet
 	statefulset := NewMySQLStatefulSet(name, nameSpace, secretName)
-
+	err = rtx.Create(context.TODO(), statefulset)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

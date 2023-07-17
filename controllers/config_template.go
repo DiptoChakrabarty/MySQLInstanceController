@@ -6,14 +6,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewMySQLStatefulSet(name string, namespace string, SecretName string, replicas int32) *appsv1.StatefulSet {
+func NewMySQLStatefulSet(name string, namespace string, SecretName string) *appsv1.StatefulSet {
 	statefulSet := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: int32Ptr(replicas),
+			Replicas: 3,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": name,
