@@ -81,8 +81,8 @@ func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.My
 	nameSpace := instance.Namespace
 	// Generate a random password for the MySQL root user
 	rand.Seed(time.Now().UnixNano())
-	rootPwd := generatePassword()
-	clusteradminPwd := generatePassword()
+	rootPwd := generateRandomPassword()
+	clusteradminPwd := generateRandomPassword()
 
 	// Create a new secret for the mysql statefulset
 	secretName := name + "-secret"
@@ -112,6 +112,13 @@ func (r *MySQLInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func generatePassword() string {
-	return "Something"
+func generateRandomPassword() string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@!_$#&"
+	const passwordLength = 16
+
+	pwd := make([]byte, passwordLength)
+	for i := range pwd {
+		pwd[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(pwd)
 }
