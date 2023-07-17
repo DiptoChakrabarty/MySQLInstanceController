@@ -79,19 +79,14 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.MySQLInstance) error {
 	// Generate a random password for the MySQL root user
 	rand.Seed(time.Now().UnixNano())
-	password := generateRandomPassword()
+	rootPwd := generatePassword()
+	clusteradminPwd := generatePassword()
+
+	// Create a new secret for the mysql statefulset
+	secretName := instance.Name + "-secret"
+	secret := NewMySQLSecret(secretName, instance.Namespace, rootPwd, clusteradminPwd)
 
 	// Create StatefulSet
-	statefulSet := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      instance.Name,
-			Namespace: instance.Namespace,
-		},
-		Spec: appsv1.StatefulSetSpec{
-			Replicas:    3,
-			ServiceName: instance.Name,
-		},
-	}
 
 	// Set password as an environment variable
 
@@ -103,4 +98,8 @@ func (r *MySQLInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mysqlv1alpha1.MySQLInstance{}).
 		Complete(r)
+}
+
+func generatePassword() string {
+	return "Something"
 }
