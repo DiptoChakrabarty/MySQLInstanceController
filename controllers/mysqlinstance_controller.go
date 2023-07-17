@@ -77,18 +77,27 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 // Create StatefulSet method
 func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.MySQLInstance) error {
+	name := instance.Name
+	nameSpace := instance.Namespace
 	// Generate a random password for the MySQL root user
 	rand.Seed(time.Now().UnixNano())
 	rootPwd := generatePassword()
 	clusteradminPwd := generatePassword()
 
 	// Create a new secret for the mysql statefulset
-	secretName := instance.Name + "-secret"
-	secret := NewMySQLSecret(secretName, instance.Namespace, rootPwd, clusteradminPwd)
+	secretName := name + "-secret"
+	secret := NewMySQLSecret(secretName, nameSpace, rootPwd, clusteradminPwd)
+
+	// Create the Secret
+	err = rtx.Create(context.TODO(), secret)
+	if err != nil {
+		// Handle error
+		return err
+	}
 
 	// Create StatefulSet
+	statefulset := NewMySQLStatefulSet(name, nameSpace, secretName)
 
-	// Set password as an environment variable
 
 	return nil
 }
