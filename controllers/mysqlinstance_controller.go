@@ -67,7 +67,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}, statefulset)
 
 	if err != nil {
-		err = rtx.CreateStatefulSet(instance)
+		err = rtx.CreateMySQLResources(instance)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -76,7 +76,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 }
 
 // Create StatefulSet method
-func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.MySQLInstance) error {
+func (rtx *MySQLInstanceReconciler) CreateMySQLResources(instance *mysqlv1alpha1.MySQLInstance) error {
 	name := instance.Name
 	nameSpace := instance.Namespace
 	// Generate a random password for the MySQL root user
