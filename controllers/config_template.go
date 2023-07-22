@@ -2,6 +2,7 @@ package controllers
 
 import (
 	appsv1 "k8s.io/api/apps/v1"
+	beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -13,7 +14,7 @@ func NewMySQLStatefulSet(name string, namespace string, SecretName string) *apps
 			Namespace: namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: 3,
+			Replicas: int32(3),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": name,
@@ -63,4 +64,8 @@ func NewMySQLSecret(name string, namespace string, rootPwd string, clusteradminP
 	}
 
 	return secret
+}
+
+func NewMySQLBackupCronJob(name string, namespace string, username string, password string) *beta1.CronJob {
+	return nil
 }
