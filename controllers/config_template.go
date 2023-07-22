@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"fmt"
+
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,7 +77,14 @@ func NewMySQLSecret(name string, namespace string, rootPwd string, clusteradminP
 }
 
 func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1.CronJob {
-
+	mysqlDumpCommand := fmt.Sprintf(
+		"mysqldump -h %s-0 -u %s -p%s --all-databases > /backup/%s_backup.sql",
+		backupObject.MysqlName,
+		backupObject.UserName,
+		backupObject.Password,
+		backupObject.MysqlName,
+	)
+	scheduleContainerName := fmt.Sprintf("%s-backup-container", backupObject.MysqlName)
 	cronJob := &beta1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      backupObject.MysqlName,
@@ -86,18 +96,18 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 		Spec: beta1.CronJobSpec{
 			Schedule: backupObject.BackupSchedule,
 			JobTemplate: beta1.JobTemplateSpec{
-				Spec: beta1.JobSpec{
+				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
 								{
-									Name:            "backup-container",
+									Name:            scheduleContainerName,
 									Image:           "mysql:latest",
 									ImagePullPolicy: corev1.PullAlways,
 									Command: []string{
 										"/bin/bash",
 										"-c",
-										"mysqldump -h mysql-prd-0.mysql-prd -u <mysql-username> -p<mysql-password> <database-name> > /backup/db_backup.sql",
+										mysqlDumpCommand,
 									},
 									VolumeMounts: []corev1.VolumeMount{
 										{
