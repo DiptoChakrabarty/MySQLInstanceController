@@ -7,6 +7,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type BackupSchedule struct {
+	BackupSchedule string
+	MysqlName      string
+	UserName       string
+	Password       string
+}
+
 func NewMySQLStatefulSet(name string, namespace string, SecretName string) *appsv1.StatefulSet {
 	statefulSet := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -66,6 +73,54 @@ func NewMySQLSecret(name string, namespace string, rootPwd string, clusteradminP
 	return secret
 }
 
-func NewMySQLBackupCronJob(name string, namespace string, username string, password string) *beta1.CronJob {
-	return nil
+func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1.CronJob {
+
+	cronJob := &beta1.CronJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      backupObject.MysqlName,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app": backupObject.MysqlName,
+			},
+		},
+		Spec: beta1.CronJobSpec{
+			Schedule: backupObject.BackupSchedule,
+			JobTemplate: beta1.JobTemplateSpec{
+				Spec: beta1.JobSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name:            "backup-container",
+									Image:           "mysql:latest",
+									ImagePullPolicy: corev1.PullAlways,
+									Command: []string{
+										"/bin/bash",
+										"-c",
+										"mysqldump -h mysql-prd-0.mysql-prd -u <mysql-username> -p<mysql-password> <database-name> > /backup/db_backup.sql",
+									},
+									VolumeMounts: []corev1.VolumeMount{
+										{
+											Name:      "backup-volume",
+											MountPath: "/backup",
+										},
+									},
+								},
+							},
+							Volumes: []corev1.Volume{
+								{
+									Name: "backup-volume",
+									VolumeSource: corev1.VolumeSource{
+										EmptyDir: &corev1.EmptyDirVolumeSource{},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return cronJob
 }
