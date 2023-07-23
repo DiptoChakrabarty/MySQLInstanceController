@@ -18,7 +18,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - mysqldump -h mysqlpod -u root -ptoortoor --all-databases > /backup/new_backup.sql
+            - mysqldump -h mysqlsvc -u root -ptoortoor --all-databases > /backup/new_backup.sql
           restartPolicy: OnFailure
           volumes:
           - name: backupvol
