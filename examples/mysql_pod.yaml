@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mysqlpod
+  name: mysqlpod
+spec:
+  containers:
+  - image: mysql:8.0.26
+    name: mysqlpod
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      value: toortoor
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
