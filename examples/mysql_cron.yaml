@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mysqlbackup
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: mysqlbackup
+            image: mysql:8.0.26
+            imagePullPolicy: IfNotPresent
+            volumeMounts:
+              - name: backupvol
+                mountPath: /backup
+            command:
+            - /bin/sh
+            - -c
+            - mysqldump -h mysqlsvc -u root -ptoortoor --all-databases > /backup/new_backup.sql
+          restartPolicy: OnFailure
+          volumes:
+          - name: backupvol
+            emptyDir: {}
