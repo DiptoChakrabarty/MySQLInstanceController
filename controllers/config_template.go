@@ -24,7 +24,6 @@ func NewMySQLStatefulSet(name string, namespace string, SecretName string) *apps
 			Namespace: namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: int32(3),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": name,
@@ -131,6 +130,5 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 			},
 		},
 	}
-
 	return cronJob
 }
