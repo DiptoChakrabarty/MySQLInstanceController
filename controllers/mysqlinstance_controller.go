@@ -29,6 +29,7 @@ import (
 
 	mysqlv1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // MySQLInstanceReconciler reconciles a MySQLInstance object
@@ -61,6 +62,8 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
+	mysqlInstanceConfig := MySQLInstanceConfig{Name: instance.Name, Namespace: instance.Namespace, Instance: *instance}
+
 	// Check if StatefulSet exists
 	statefulset := &appsv1.StatefulSet{}
 	err = rtx.Get(context.TODO(), types.NamespacedName{
@@ -68,43 +71,37 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		Name:      instance.Name,
 	}, statefulset)
 
+	// Create the statefulset
 	if err != nil {
-		err = rtx.CreateMySQLResources(instance)
+		err = rtx.CreateMySQLStatefulset(mysqlInstanceConfig)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
 	}
+
+	// Check if secret present
+	secret := &corev1.Secret{}
+	err = rtx.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Name + "-secret",
+	}, secret)
+
+	// Create the secret
+	if err != nil {
+		// Generate a random password for the MySQL root user
+		rand.Seed(time.Now().UnixNano())
+		mysqlPassword := MysqlPasswords{
+			RootPassword:         generateRandomPassword(),
+			ClusterAdminPassword: generateRandomPassword(),
+		}
+		err = rtx.CreateMySQLSecret(mysqlInstanceConfig, mysqlPassword)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if service present
 	return ctrl.Result{}, nil
-}
-
-// Create StatefulSet method
-func (rtx *MySQLInstanceReconciler) CreateMySQLResources(instance *mysqlv1alpha1.MySQLInstance) error {
-	name := instance.Name
-	nameSpace := instance.Namespace
-	// Generate a random password for the MySQL root user
-	rand.Seed(time.Now().UnixNano())
-	rootPwd := generateRandomPassword()
-	clusteradminPwd := generateRandomPassword()
-
-	// Create a new secret for the mysql statefulset
-	secretName := name + "-secret"
-	secret := NewMySQLSecret(secretName, nameSpace, rootPwd, clusteradminPwd)
-
-	// Create the Secret
-	err := rtx.Create(context.TODO(), secret)
-	if err != nil {
-		// Handle error
-		return err
-	}
-
-	// Create StatefulSet
-	statefulset := NewMySQLStatefulSet(name, nameSpace, secretName)
-	err = rtx.Create(context.TODO(), statefulset)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
