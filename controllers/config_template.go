@@ -15,7 +15,17 @@ type BackupSchedule struct {
 	BackupSchedule string
 	MysqlName      string
 	UserName       string
-	Password       string
+	Password       MysqlPasswords
+}
+
+type MySQLInstanceConfig struct {
+	Name      string
+	Namespace string
+}
+
+type MysqlPasswords struct {
+	RootPassword         string
+	ClusterAdminPassword string
 }
 
 func NewMySQLStatefulSet(name string, namespace string, SecretName string) *appsv1.StatefulSet {
@@ -60,16 +70,16 @@ func NewMySQLStatefulSet(name string, namespace string, SecretName string) *apps
 	return statefulSet
 }
 
-func NewMySQLSecret(name string, namespace string, rootPwd string, clusteradminPwd string) *corev1.Secret {
+func NewMySQLSecret(name string, namespace string, password MysqlPasswords) *corev1.Secret {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
 		Data: map[string][]byte{
-			"MYSQL_ROOT_PASSWORD": []byte(rootPwd),
+			"MYSQL_ROOT_PASSWORD": []byte(password.RootPassword),
 			"MYSQL_USER":          []byte("clusteradmin"),
-			"MYSQL_PASSWORD":      []byte(clusteradminPwd),
+			"MYSQL_PASSWORD":      []byte(password.ClusterAdminPassword),
 		},
 	}
 
@@ -81,7 +91,7 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 		"mysqldump -h %s-0 -u %s -p%s --all-databases > /backup/%s_backup.sql",
 		backupObject.MysqlName,
 		backupObject.UserName,
-		backupObject.Password,
+		backupObject.Password.ClusterAdminPassword,
 		backupObject.MysqlName,
 	)
 	scheduleContainerName := fmt.Sprintf("%s-backup-container", backupObject.MysqlName)

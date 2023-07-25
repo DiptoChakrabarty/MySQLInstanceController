@@ -37,11 +37,6 @@ type MySQLInstanceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-type MySQLInstanceConfig struct {
-	Name      string
-	Namespace string
-}
-
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/finalizers,verbs=update
@@ -97,6 +92,8 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			return ctrl.Result{}, err
 		}
 	}
+
+	// Check if service present
 	return ctrl.Result{}, nil
 }
 
