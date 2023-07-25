@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -8,6 +9,8 @@ import (
 	beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type BackupSchedule struct {
@@ -131,4 +134,40 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 		},
 	}
 	return cronJob
+}
+
+func (rtx *MySQLInstanceReconciler) createService(name string, namespace string) error {
+	// Define your Service template
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name + "-service",
+			Namespace: namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Selector: map[string]string{
+				"app": name, // Adjust the label selector as needed
+			},
+			Ports: []corev1.ServicePort{
+				{
+					Port:       3306, // Adjust the port number as needed
+					TargetPort: intstr.IntOrString{IntVal: 3306},
+				},
+			},
+			Type: corev1.ServiceTypeClusterIP, // Adjust the service type as needed
+		},
+	}
+
+	// Set the owner reference to ensure the Service is deleted when the MySQLInstance is deleted
+	if err := controllerutil.SetControllerReference(instance, service, rtx.Scheme); err != nil {
+		return err
+	}
+
+	// Create or Update the Service resource
+	err := rtx.Create(context.Background(), service)
+	if err != nil {
+		// Handle the error appropriately
+		return err
+	}
+
+	return nil
 }

@@ -37,6 +37,11 @@ type MySQLInstanceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+type MySQLInstanceConfig struct {
+	Name      string
+	Namespace string
+}
+
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/finalizers,verbs=update
@@ -61,6 +66,8 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
+	mysqlInstanceConfig := MySQLInstanceConfig{Name: instance.Name, Namespace: instance.Namespace}
+
 	// Check if StatefulSet exists
 	statefulset := &appsv1.StatefulSet{}
 	err = rtx.Get(context.TODO(), types.NamespacedName{
@@ -69,7 +76,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}, statefulset)
 
 	if err != nil {
-		err = rtx.CreateMySQLResources(instance)
+		err = rtx.CreateMySQLStatefulset(mysqlInstanceConfig)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -78,9 +85,25 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 }
 
 // Create StatefulSet method
-func (rtx *MySQLInstanceReconciler) CreateMySQLResources(instance *mysqlv1alpha1.MySQLInstance) error {
-	name := instance.Name
-	nameSpace := instance.Namespace
+func (rtx *MySQLInstanceReconciler) CreateMySQLStatefulset(mysqlInstanceConfig MySQLInstanceConfig) error {
+	name := mysqlInstanceConfig.Name
+	nameSpace := mysqlInstanceConfig.Namespace
+	secretName := name + "-secret"
+
+	// Create StatefulSet
+	statefulset := NewMySQLStatefulSet(name, nameSpace, secretName)
+	err := rtx.Create(context.TODO(), statefulset)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Create the mysql secret
+func (rtx *MySQLInstanceReconciler) CreateMySQLResources(mysqlInstanceConfig MySQLInstanceConfig) error {
+	name := mysqlInstanceConfig.Name
+	nameSpace := mysqlInstanceConfig.Namespace
 	// Generate a random password for the MySQL root user
 	rand.Seed(time.Now().UnixNano())
 	rootPwd := generateRandomPassword()
@@ -96,14 +119,6 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLResources(instance *mysqlv1alpha1
 		// Handle error
 		return err
 	}
-
-	// Create StatefulSet
-	statefulset := NewMySQLStatefulSet(name, nameSpace, secretName)
-	err = rtx.Create(context.TODO(), statefulset)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
