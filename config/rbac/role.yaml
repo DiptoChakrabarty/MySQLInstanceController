@@ -1,0 +1,57 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - dipto.mysql.example.dipto.mysql.example
+  resources:
+  - mysqlinstances/status
+  verbs:
+  - get
+  - patch
+  - update

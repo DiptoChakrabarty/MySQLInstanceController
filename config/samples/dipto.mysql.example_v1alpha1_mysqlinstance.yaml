@@ -1,6 +1,7 @@
 apiVersion: dipto.mysql.example.dipto.mysql.example/v1alpha1
 kind: MySQLInstance
 metadata:
+  namespace: mysqlinstancecontroller-system
   labels:
     app.kubernetes.io/name: mysqlinstance
     app.kubernetes.io/instance: mysqlinstance-sample
@@ -10,3 +11,5 @@ metadata:
   name: mysqlinstance-sample
 spec:
   # TODO(user): Add fields here
+  backupEnabled: true
+  backupSchedule: "0 0 * * *"

@@ -1,10 +1,21 @@
 package controllers
 
 import (
+	"fmt"
+
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+type BackupSchedule struct {
+	BackupSchedule string
+	MysqlName      string
+	UserName       string
+	Password       string
+}
 
 func NewMySQLStatefulSet(name string, namespace string, SecretName string) *appsv1.StatefulSet {
 	statefulSet := &appsv1.StatefulSet{
@@ -13,7 +24,6 @@ func NewMySQLStatefulSet(name string, namespace string, SecretName string) *apps
 			Namespace: namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: 3,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": name,
@@ -63,4 +73,62 @@ func NewMySQLSecret(name string, namespace string, rootPwd string, clusteradminP
 	}
 
 	return secret
+}
+
+func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1.CronJob {
+	mysqlDumpCommand := fmt.Sprintf(
+		"mysqldump -h %s-0 -u %s -p%s --all-databases > /backup/%s_backup.sql",
+		backupObject.MysqlName,
+		backupObject.UserName,
+		backupObject.Password,
+		backupObject.MysqlName,
+	)
+	scheduleContainerName := fmt.Sprintf("%s-backup-container", backupObject.MysqlName)
+	cronJob := &beta1.CronJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      backupObject.MysqlName,
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app": backupObject.MysqlName,
+			},
+		},
+		Spec: beta1.CronJobSpec{
+			Schedule: backupObject.BackupSchedule,
+			JobTemplate: beta1.JobTemplateSpec{
+				Spec: batchv1.JobSpec{
+					Template: corev1.PodTemplateSpec{
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name:            scheduleContainerName,
+									Image:           "mysql:latest",
+									ImagePullPolicy: corev1.PullAlways,
+									Command: []string{
+										"/bin/bash",
+										"-c",
+										mysqlDumpCommand,
+									},
+									VolumeMounts: []corev1.VolumeMount{
+										{
+											Name:      "backup-volume",
+											MountPath: "/backup",
+										},
+									},
+								},
+							},
+							Volumes: []corev1.Volume{
+								{
+									Name: "backup-volume",
+									VolumeSource: corev1.VolumeSource{
+										EmptyDir: &corev1.EmptyDirVolumeSource{},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return cronJob
 }

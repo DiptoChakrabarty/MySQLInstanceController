@@ -29,7 +29,9 @@ type MySQLInstanceSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of MySQLInstance. Edit mysqlinstance_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Foo            string `json:"foo,omitempty"`
+	BackupEnabled  bool   `json:"backupEnabled,omitempty"`
+	BackupSchedule string `json:"backupSchedule,omitempty"`
 }
 
 // MySQLInstanceStatus defines the observed state of MySQLInstance

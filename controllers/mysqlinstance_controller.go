@@ -40,6 +40,8 @@ type MySQLInstanceReconciler struct {
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/finalizers,verbs=update
+//+kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -67,7 +69,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}, statefulset)
 
 	if err != nil {
-		err = rtx.CreateStatefulSet(instance)
+		err = rtx.CreateMySQLResources(instance)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -76,7 +78,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 }
 
 // Create StatefulSet method
-func (rtx *MySQLInstanceReconciler) CreateStatefulSet(instance *mysqlv1alpha1.MySQLInstance) error {
+func (rtx *MySQLInstanceReconciler) CreateMySQLResources(instance *mysqlv1alpha1.MySQLInstance) error {
 	name := instance.Name
 	nameSpace := instance.Namespace
 	// Generate a random password for the MySQL root user
