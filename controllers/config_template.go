@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	mysqlv1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	beta1 "k8s.io/api/batch/v1beta1"
@@ -21,6 +22,7 @@ type BackupSchedule struct {
 type MySQLInstanceConfig struct {
 	Name      string
 	Namespace string
+	Instance  mysqlv1alpha1.MySQLInstance
 }
 
 type MysqlPasswords struct {

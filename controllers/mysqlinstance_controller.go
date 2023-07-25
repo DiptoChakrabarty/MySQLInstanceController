@@ -62,7 +62,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 
-	mysqlInstanceConfig := MySQLInstanceConfig{Name: instance.Name, Namespace: instance.Namespace}
+	mysqlInstanceConfig := MySQLInstanceConfig{Name: instance.Name, Namespace: instance.Namespace, Instance: *instance}
 
 	// Check if StatefulSet exists
 	statefulset := &appsv1.StatefulSet{}

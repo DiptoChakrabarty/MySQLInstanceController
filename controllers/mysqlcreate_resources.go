@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 // Create StatefulSet method
@@ -14,6 +16,11 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLStatefulset(mysqlInstanceConfig M
 	statefulset := NewMySQLStatefulSet(name, nameSpace, secretName)
 	err := rtx.Create(context.TODO(), statefulset)
 	if err != nil {
+		return err
+	}
+
+	// Deletion of resource on deleting the resource
+	if err := controllerutil.SetControllerReference(&mysqlInstanceConfig.Instance, statefulset, rtx.Scheme); err != nil {
 		return err
 	}
 
@@ -33,6 +40,11 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLSecret(mysqlInstanceConfig MySQLI
 	err := rtx.Create(context.TODO(), secret)
 	if err != nil {
 		// Handle error
+		return err
+	}
+
+	// Deletion of resource on deleting the resource
+	if err := controllerutil.SetControllerReference(&mysqlInstanceConfig.Instance, secret, rtx.Scheme); err != nil {
 		return err
 	}
 	return nil
