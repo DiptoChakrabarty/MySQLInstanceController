@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"math/rand"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -87,7 +88,13 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	// Create the secret
 	if err != nil {
-		err = rtx.CreateMySQLSecret(mysqlInstanceConfig)
+		// Generate a random password for the MySQL root user
+		rand.Seed(time.Now().UnixNano())
+		mysqlPassword := MysqlPasswords{
+			RootPassword:         generateRandomPassword(),
+			ClusterAdminPassword: generateRandomPassword(),
+		}
+		err = rtx.CreateMySQLSecret(mysqlInstanceConfig, mysqlPassword)
 		if err != nil {
 			return ctrl.Result{}, err
 		}

@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"context"
-	"math/rand"
-	"time"
 )
 
 // Create StatefulSet method
@@ -23,17 +21,13 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLStatefulset(mysqlInstanceConfig M
 }
 
 // Create the mysql secret
-func (rtx *MySQLInstanceReconciler) CreateMySQLSecret(mysqlInstanceConfig MySQLInstanceConfig) error {
+func (rtx *MySQLInstanceReconciler) CreateMySQLSecret(mysqlInstanceConfig MySQLInstanceConfig, mysqlPassword MysqlPasswords) error {
 	name := mysqlInstanceConfig.Name
 	nameSpace := mysqlInstanceConfig.Namespace
-	// Generate a random password for the MySQL root user
-	rand.Seed(time.Now().UnixNano())
-	rootPwd := generateRandomPassword()
-	clusteradminPwd := generateRandomPassword()
 
 	// Create a new secret for the mysql statefulset
 	secretName := name + "-secret"
-	secret := NewMySQLSecret(secretName, nameSpace, rootPwd, clusteradminPwd)
+	secret := NewMySQLSecret(secretName, nameSpace, mysqlPassword)
 
 	// Create the Secret
 	err := rtx.Create(context.TODO(), secret)
