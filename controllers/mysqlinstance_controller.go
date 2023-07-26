@@ -29,6 +29,7 @@ import (
 
 	mysqlv1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
+	beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -86,15 +87,52 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		Name:      instance.Name + "-secret",
 	}, secret)
 
+	// Generate a random password for the MySQL root user
+	rand.Seed(time.Now().UnixNano())
+	mysqlPassword := MysqlPasswords{
+		RootPassword:         generateRandomPassword(),
+		ClusterAdminPassword: generateRandomPassword(),
+	}
+
 	// Create the secret
 	if err != nil {
-		// Generate a random password for the MySQL root user
-		rand.Seed(time.Now().UnixNano())
-		mysqlPassword := MysqlPasswords{
-			RootPassword:         generateRandomPassword(),
-			ClusterAdminPassword: generateRandomPassword(),
-		}
 		err = rtx.CreateMySQLSecret(mysqlInstanceConfig, mysqlPassword)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if service present
+	service := &corev1.Service{}
+	err = rtx.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Name + "-service",
+	}, service)
+
+	// Create the service
+	if err != nil {
+		err = rtx.CreateMySQLService(mysqlInstanceConfig)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if cronjob is present
+	cronJob := &beta1.CronJob{}
+	err = rtx.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Name + "-cronjob",
+	}, cronJob)
+
+	// Create the Backup CronJOB
+	if err != nil {
+		backupScheduleObject := BackupSchedule{
+			MysqlName:      instance.Name + "-cronjob",
+			UserName:       "clusteradmin",
+			Password:       mysqlPassword,
+			BackupSchedule: instance.Spec.BackupSchedule,
+		}
+		err = rtx.CreateMySQLCronJOB(mysqlInstanceConfig, backupScheduleObject)
 		if err != nil {
 			return ctrl.Result{}, err
 		}

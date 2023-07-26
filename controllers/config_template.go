@@ -167,19 +167,4 @@ func NewMySQLService(name string, namespace string) *corev1.Service {
 		},
 	}
 	return service
-	/*
-		// Set the owner reference to ensure the Service is deleted when the MySQLInstance is deleted
-		if err := controllerutil.SetControllerReference(instance, service, rtx.Scheme); err != nil {
-			return err
-		}
-
-		// Create or Update the Service resource
-		err := rtx.Create(context.Background(), service)
-		if err != nil {
-			// Handle the error appropriately
-			return err
-		}
-
-		return nil
-	*/
 }
