@@ -17,6 +17,7 @@ type BackupSchedule struct {
 	MysqlName      string
 	UserName       string
 	Password       MysqlPasswords
+	ServiceName    string
 }
 
 type MySQLInstanceConfig struct {
@@ -90,8 +91,8 @@ func NewMySQLSecret(name string, namespace string, password MysqlPasswords) *cor
 
 func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1.CronJob {
 	mysqlDumpCommand := fmt.Sprintf(
-		"mysqldump -h %s-0 -u %s -p%s --all-databases > /backup/%s_backup.sql",
-		backupObject.MysqlName,
+		"mysqldump -h %s -u %s -p%s --all-databases > /backup/%s_backup.sql",
+		backupObject.ServiceName,
 		backupObject.UserName,
 		backupObject.Password.ClusterAdminPassword,
 		backupObject.MysqlName,

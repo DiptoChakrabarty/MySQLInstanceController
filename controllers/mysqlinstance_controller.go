@@ -131,6 +131,7 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			UserName:       "clusteradmin",
 			Password:       mysqlPassword,
 			BackupSchedule: instance.Spec.BackupSchedule,
+			ServiceName:    instance.Name + "-service",
 		}
 		err = rtx.CreateMySQLCronJOB(mysqlInstanceConfig, backupScheduleObject)
 		if err != nil {
