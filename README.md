@@ -1,1 +1,1 @@
-# MySQLInstanceController
+# MySqlInstanceController
