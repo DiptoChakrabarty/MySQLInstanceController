@@ -6,7 +6,6 @@ import (
 	mysqlv1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
-	beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -91,7 +90,7 @@ func NewMySQLSecret(name string, namespace string, password MysqlPasswords) *cor
 	return secret
 }
 
-func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1.CronJob {
+func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *batchv1.CronJob {
 	// Defining the CronJOb Template
 	mysqlDumpCommand := fmt.Sprintf(
 		"mysqldump -h %s -u %s -p%s --all-databases > /backup/%s_backup.sql",
@@ -101,7 +100,7 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 		backupObject.MysqlName,
 	)
 	scheduleContainerName := fmt.Sprintf("%s-backup-container", backupObject.MysqlName)
-	cronJob := &beta1.CronJob{
+	cronJob := &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      backupObject.MysqlName,
 			Namespace: namespace,
@@ -109,9 +108,9 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 				"app": backupObject.MysqlName,
 			},
 		},
-		Spec: beta1.CronJobSpec{
+		Spec: batchv1.CronJobSpec{
 			Schedule: backupObject.BackupSchedule,
-			JobTemplate: beta1.JobTemplateSpec{
+			JobTemplate: batchv1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
@@ -141,6 +140,7 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 									},
 								},
 							},
+							RestartPolicy: "Always",
 						},
 					},
 				},
