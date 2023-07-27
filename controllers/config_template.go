@@ -140,7 +140,7 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *batch
 									},
 								},
 							},
-							RestartPolicy: "Always",
+							RestartPolicy: "OnFailure",
 						},
 					},
 				},
