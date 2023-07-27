@@ -32,6 +32,7 @@ type MysqlPasswords struct {
 }
 
 func NewMySQLStatefulSet(name string, namespace string, SecretName string) *appsv1.StatefulSet {
+	// Define the StatefulSet Template
 	statefulSet := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -74,6 +75,7 @@ func NewMySQLStatefulSet(name string, namespace string, SecretName string) *apps
 }
 
 func NewMySQLSecret(name string, namespace string, password MysqlPasswords) *corev1.Secret {
+	// Define the Secret Template
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -90,6 +92,7 @@ func NewMySQLSecret(name string, namespace string, password MysqlPasswords) *cor
 }
 
 func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1.CronJob {
+	// Defining the CronJOb Template
 	mysqlDumpCommand := fmt.Sprintf(
 		"mysqldump -h %s -u %s -p%s --all-databases > /backup/%s_backup.sql",
 		backupObject.ServiceName,
@@ -148,7 +151,7 @@ func NewMySQLBackupCronJob(backupObject BackupSchedule, namespace string) *beta1
 }
 
 func NewMySQLService(name string, namespace string) *corev1.Service {
-	// Define your Service template
+	// Defining the Service template
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name + "-service",
@@ -156,15 +159,15 @@ func NewMySQLService(name string, namespace string) *corev1.Service {
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				"app": name, // Adjust the label selector as needed
+				"app": name,
 			},
 			Ports: []corev1.ServicePort{
 				{
-					Port:       3306, // Adjust the port number as needed
+					Port:       3306,
 					TargetPort: intstr.IntOrString{IntVal: 3306},
 				},
 			},
-			Type: corev1.ServiceTypeClusterIP, // Adjust the service type as needed
+			Type: corev1.ServiceTypeClusterIP,
 		},
 	}
 	return service

@@ -6,7 +6,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-// Create StatefulSet method
+// Create MySQL StatefulSet method
 func (rtx *MySQLInstanceReconciler) CreateMySQLStatefulset(mysqlInstanceConfig MySQLInstanceConfig) error {
 	name := mysqlInstanceConfig.Name
 	nameSpace := mysqlInstanceConfig.Namespace
@@ -27,7 +27,7 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLStatefulset(mysqlInstanceConfig M
 	return nil
 }
 
-// Create the mysql secret
+// Create the MySQL Secret
 func (rtx *MySQLInstanceReconciler) CreateMySQLSecret(mysqlInstanceConfig MySQLInstanceConfig, mysqlPassword MysqlPasswords) error {
 	name := mysqlInstanceConfig.Name
 	nameSpace := mysqlInstanceConfig.Namespace
@@ -50,7 +50,7 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLSecret(mysqlInstanceConfig MySQLI
 	return nil
 }
 
-// Create the mysql service
+// Create the MySQL Service
 func (rtx *MySQLInstanceReconciler) CreateMySQLService(mysqlInstanceConfig MySQLInstanceConfig) error {
 	name := mysqlInstanceConfig.Name
 	nameSpace := mysqlInstanceConfig.Namespace
@@ -67,7 +67,7 @@ func (rtx *MySQLInstanceReconciler) CreateMySQLService(mysqlInstanceConfig MySQL
 	return nil
 }
 
-// Create the mysql CronJob
+// Create the MySQL CronJob
 func (rtx *MySQLInstanceReconciler) CreateMySQLCronJOB(mysqlInstanceConfig MySQLInstanceConfig, backupObject BackupSchedule) error {
 	nameSpace := mysqlInstanceConfig.Namespace
 
