@@ -29,6 +29,7 @@ import (
 
 	mysqlv1alpha1 "github.com/DiptoChakrabarty/MySQLInstanceController.git/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -43,6 +44,9 @@ type MySQLInstanceReconciler struct {
 //+kubebuilder:rbac:groups=dipto.mysql.example.dipto.mysql.example,resources=mysqlinstances/finalizers,verbs=update
 //+kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs/status,verbs=get;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -86,15 +90,53 @@ func (rtx *MySQLInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		Name:      instance.Name + "-secret",
 	}, secret)
 
+	// Generate a random password for the MySQL root user
+	rand.Seed(time.Now().UnixNano())
+	mysqlPassword := MysqlPasswords{
+		RootPassword:         generateRandomPassword(),
+		ClusterAdminPassword: generateRandomPassword(),
+	}
+
 	// Create the secret
 	if err != nil {
-		// Generate a random password for the MySQL root user
-		rand.Seed(time.Now().UnixNano())
-		mysqlPassword := MysqlPasswords{
-			RootPassword:         generateRandomPassword(),
-			ClusterAdminPassword: generateRandomPassword(),
-		}
 		err = rtx.CreateMySQLSecret(mysqlInstanceConfig, mysqlPassword)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if service present
+	service := &corev1.Service{}
+	err = rtx.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Name + "-service",
+	}, service)
+
+	// Create the service
+	if err != nil {
+		err = rtx.CreateMySQLService(mysqlInstanceConfig)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if cronjob is present
+	cronJob := &batchv1.CronJob{}
+	err = rtx.Get(context.TODO(), types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      instance.Name + "-cronjob",
+	}, cronJob)
+
+	// Create the Backup CronJOB
+	if err != nil {
+		backupScheduleObject := BackupSchedule{
+			MysqlName:      instance.Name + "-cronjob",
+			UserName:       "clusteradmin",
+			Password:       mysqlPassword,
+			BackupSchedule: instance.Spec.BackupSchedule,
+			ServiceName:    instance.Name + "-service",
+		}
+		err = rtx.CreateMySQLCronJOB(mysqlInstanceConfig, backupScheduleObject)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -111,6 +153,7 @@ func (r *MySQLInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// Generate the random Password
 func generateRandomPassword() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@!_$#&"
 	const passwordLength = 16
