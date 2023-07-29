@@ -56,3 +56,7 @@ Appropriate RBAC permissions were added to the Operator to ensure it has the req
 ```
 </p>
 </details>
+
+### Development of the project
+
+Please view Contributing.md to know the steps required to make your changes
