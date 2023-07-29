@@ -1,6 +1,6 @@
 # MySQLInstanceController
 
-# Project Description
+## Project Description
 
 The MySQLInstance Controller is a Kubernetes Operator designed to automate the deployment and management of MySQL instances in a Kubernetes cluster. It simplifies the process of setting up and maintaining MySQL databases with backups , providing a seamless experience for developers and administrators. 
 
