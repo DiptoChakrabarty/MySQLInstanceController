@@ -1,0 +1,14 @@
+apiVersion: dipto.mysql.example.dipto.mysql.example/v1alpha1
+kind: MySQLInstance
+metadata:
+  namespace: mysqlinstancecontroller-system
+  labels:
+    app.kubernetes.io/name: example-sample
+    app.kubernetes.io/instance: example-sample
+    app.kubernetes.io/part-of: mysqlinstancecontroller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: mysqlinstancecontroller
+  name: example-sample
+spec:
+  backupEnabled: true
+  backupSchedule: "0 0 * * *"
