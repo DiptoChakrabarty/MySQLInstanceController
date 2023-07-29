@@ -4,7 +4,7 @@
 
 The MySQLInstance Controller is a Kubernetes Operator designed to automate the deployment and management of MySQL instances in a Kubernetes cluster. It simplifies the process of setting up and maintaining MySQL databases with backups , providing a seamless experience for developers and administrators. 
 
-## Flow of how controller works
+### Flow of how controller works
 
 <details><summary>show</summary>
 <p>
@@ -32,5 +32,27 @@ The MySQLInstance custom resource allows users to specify whether backups are re
 When the backup schedule is triggered, the Operator orchestrates the backup process for the MySQL instances. It interacts with the MySQL pods, using the credentials from the Secrets, and performs a backup using either mysqldump or a custom backup tool.
 ```
 
+</p>
+</details>
+
+### What was done on this project
+
+<details><summary>show</summary>
+<p>
+
+```bash
+
+- Custom Resource Definition:
+A new CRD named MySQLInstance was defined to represent MySQL instances and their configuration, including backup preferences.
+
+- Operator Implementation:
+The Operator implementation includes the main reconciliation loop to manage the MySQLInstance resources and create the associated resources (StatefulSet, Service, Secrets, and CronJobs) based on the provided specifications.
+
+- Backup and Secrets Management:
+The Operator was designed to interact with MySQL instances and manage backup jobs using Kubernetes CronJobs. It also created and managed Kubernetes Secrets for credentials.
+
+- RBAC and Permissions:
+Appropriate RBAC permissions were added to the Operator to ensure it has the required access to manage the necessary resources.
+```
 </p>
 </details>
