@@ -19,7 +19,12 @@ make manifests
 make docker-build docker-push
 ```
 
-## Deploy to cluster
+## Deploy Controller to cluster
 ```
 make deploy
+```
+
+## Run a sample mysqlInstance example
+```
+kubectl apply -f mysql_instance_example.yaml
 ```
