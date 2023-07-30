@@ -11,4 +11,4 @@ metadata:
   name: example-sample
 spec:
   backupEnabled: true
-  backupSchedule: "0 0 * * *"
+  backupSchedule: "17 */6 * * *"
